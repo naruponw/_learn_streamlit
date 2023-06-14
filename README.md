@@ -1,6 +1,6 @@
-# Name of Streamlit App
+# _learn_streamlit
 
-Description of the app ...
+Blah Blah Blah Blah Blah Blah Blah Blah
 
 ## Demo App
 
