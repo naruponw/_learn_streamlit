@@ -43,6 +43,8 @@ def main():
     st.subheader("Volume")
     st.line_chart(ticker_df.Volume)
 
+    st.write('commit')
+
 
 if __name__ == "__main__":
     main()
