@@ -1,27 +1,27 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 import base64
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
-st.title('NBA Player Stats Explorer')
+st.title('NFL Football Stats (Rushing) Explorer')
 
 st.markdown("""
-This app performs simple webscraping of NBA player stats data!
-* **Python libraries:** base64, pandas, streamlit
-* **Data source:** [Basketball-reference.com](https://www.basketball-reference.com/).
+This app performs simple webscraping of NFL Football player stats data (focusing on Rushing)!
+* **Python libraries:** base64, pandas, streamlit, numpy, matplotlib, seaborn
+* **Data source:** [pro-football-reference.com](https://www.pro-football-reference.com/).
 """)
 
 st.sidebar.header('User Input Features')
-selected_year = st.sidebar.selectbox('Year',
-    list(reversed(range(1950, 2020))))
+selected_year = st.sidebar.selectbox('Year', list(reversed(range(1990,2020))))
 
-# Web scraping of NBA player stats
+# Web scraping of NFL player stats
+# https://www.pro-football-reference.com/years/2019/rushing.htm
 @st.cache_data
 def load_data(year):
-    url = f"https://www.basketball-reference.com/leagues/NBA_{year}_per_game.html"
-    html = pd.read_html(url, header = 0)
+    url = "https://www.pro-football-reference.com/years/" + str(year) + "/rushing.htm"
+    html = pd.read_html(url, header = 1)
     df = html[0]
     raw = df.drop(df[df.Age == 'Age'].index) # Deletes repeating headers in content
     raw = raw.fillna(0)
@@ -35,7 +35,7 @@ sorted_unique_team = sorted(playerstats.Tm.unique())
 selected_team = st.sidebar.multiselect('Team', sorted_unique_team, sorted_unique_team)
 
 # Sidebar - Position selection
-unique_pos = ['C','PF','SF','PG','SG']
+unique_pos = ['RB', 'QB', 'WR', 'FB', 'TE']
 selected_pos = st.sidebar.multiselect('Position', unique_pos, unique_pos)
 
 # Filtering data
@@ -53,7 +53,8 @@ def filedownload(df):
     href = f'<a href="data:file/csv;base64,{b64}" download="playerstats.csv">Download CSV File</a>'
     return href
 
-st.markdown(filedownload(df_selected_team), unsafe_allow_html=True)
+st.markdown(filedownload(df_selected_team),
+    unsafe_allow_html=True)
 
 # Heatmap
 if st.button('Intercorrelation Heatmap'):
@@ -61,17 +62,17 @@ if st.button('Intercorrelation Heatmap'):
     df_selected_team.to_csv('output.csv',index=False)
     df = pd.read_csv('output.csv')
 
-    selected_cols = ['Age', 'G', 'GS', 'MP', 'FG', 'FGA', 'FG%', '3P', '3P%', '2P', '2P%']
-    corr = df.filter(selected_cols).corr()
+    corr = df.drop(columns=['Player', 'Tm', 'Pos']).corr()
     mask = np.zeros_like(corr)
     mask[np.triu_indices_from(mask)] = True
+    
     with sns.axes_style("white"):
         f, ax = plt.subplots(figsize=(7, 5))
         ax = sns.heatmap(corr,
-            mask=mask, vmin=-1, vmax=1,
-            square=True,
-            annot=True, fmt='.2f',
+            mask=mask,
+            vmin=-1, vmax=1, square=True,
             cmap='coolwarm_r')
-
+    
     st.pyplot(f)
+
 
